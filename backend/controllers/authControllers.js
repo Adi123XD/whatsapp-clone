@@ -47,9 +47,13 @@ export const signup =async (req,res)=>{
 export const login =async (req,res)=>{
     try {
         const {userName , password} = req.body;
-        const user = User.findOne({userName})
-        const isPasswordCorrect = await bcryptjs.compare(password , user?.password ||" ")
-        if (!user || isPasswordCorrect)
+        const user = await User.findOne({userName})
+        if (!user)
+        {
+            return res.status(400).json({error :"User doesnot exist"})
+        }
+        const isPasswordCorrect = await bcryptjs.compare(password , user.password)
+        if (!isPasswordCorrect)
         {
             return res.status(400).json({error :"Invalid Credentials"})
         }
@@ -80,4 +84,17 @@ export const logout =(req,res)=>{
         return res.status(500).json({error:"Internal Server Error "})
     }
     
+}
+
+export const getAllUsers = async(req, res)=>{
+    try {
+        const users = await User.find({}).select("-password")
+        return res.status(200).json({
+            success:true,
+            users,
+        });
+    } catch (error) {
+        console.log("Error in getting all users ",error.message);
+        return res.status(500).json({error:"Internal Server Error "})
+    }
 }
